@@ -1,0 +1,38 @@
+name: "DevSecOps - Testes de Segurança"
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  # 1. Busca por Chaves de API e Senhas Vazadas no código
+  secret-scanning:
+    name: TruffleHog Secret Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do Código
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Rodar TruffleHog
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ""
+          head: ${{ github.ref_name }}
+          extra_args: --debug --only-verified
+
+  # 2. Análise Estática do Código (Busca de Vulnerabilidades)
+  sast-scanning:
+    name: Semgrep SAST
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout do Código
+        uses: actions/checkout@v4
+      - name: Rodar Semgrep
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: "p/javascript"
+          generateSarif: "1"
