@@ -15,3 +15,9 @@ este site é público e NÃO usa Access.
 - Cabeçalhos em `_headers` (HSTS, CSP, nosniff, frame-ancestors).
 - Nunca commitar segredos. Chaves só no Cloudflare/GitHub Secrets.
 - Cloudflare da zona: SSL estrito, HTTPS obrigatório, TLS 1.2+, WAF gerenciado, DDoS.
+
+## Deploy no Cloudflare (estado atual)
+- Worker `guardiantech-consultoria` ligado ao domínio `guardiantechit.com.br`.
+- A primeira publicação foi feita pela API, com os arquivos embutidos no Worker e os cabeçalhos de `_headers` no código.
+- Para deploy automático a cada push na `main` (igual ao Portal): Cloudflare > Workers > `guardiantech-consultoria` > Settings > Builds > conectar este repositório. O `wrangler.jsonc` já está pronto.
+- HSTS ativo na zona (1 ano, sem subdomínios). DNSSEC ainda desligado: exige registro DS no registro.br.
