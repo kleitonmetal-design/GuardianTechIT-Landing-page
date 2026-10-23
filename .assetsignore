@@ -1,0 +1,8 @@
+.git
+.github
+.githooks
+node_modules
+wrangler.jsonc
+.assetsignore
+CLAUDE.md
+*.zip

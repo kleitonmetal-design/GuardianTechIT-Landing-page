@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+
+# File containing the commit message ($1 is passed by git)
+COMMIT_MSG_FILE="$1"
+COMMIT_SOURCE="$2"
+
+if [ -z "$COMMIT_MSG_FILE" ] || [ ! -f "$COMMIT_MSG_FILE" ]; then
+    exit 0
+fi
+
+# Read current commit message content
+CURRENT_MSG=$(cat "$COMMIT_MSG_FILE")
+
+# Check if commit message already starts with [antigravity] or [claude]
+if echo "$CURRENT_MSG" | grep -qE '^\s*\[(antigravity|claude)\]'; then
+    exit 0
+fi
+
+# Detect if the commit is being executed via Antigravity IDE / Agent
+IS_ANTIGRAVITY=false
+
+# 1. Check environment variables
+if [ -n "$ANTIGRAVITY_SOURCE_METADATA" ] || \
+   [ "$ANTIGRAVITY_IDE" = "true" ] || \
+   [ "$ANTIGRAVITY" = "true" ] || \
+   [ "$ANTIGRAVITY" = "1" ] || \
+   [ -n "$ANTIGRAVITY_CLI" ] || \
+   [ -n "$GEMINI_IDE" ] || \
+   [ -n "$AGY_IDE" ]; then
+    IS_ANTIGRAVITY=true
+fi
+
+# 2. Check git config user.name / author name
+GIT_USER_NAME=$(git config user.name 2>/dev/null || echo "")
+if echo "$GIT_USER_NAME" | grep -iqE "antigravity|claude|gemini"; then
+    IS_ANTIGRAVITY=true
+fi
+
+# 3. Check process tree / parent processes
+PPID_CMD=$(ps -o command= -p $PPID 2>/dev/null || echo "")
+if echo "$PPID_CMD" | grep -iqE "antigravity|agy|gemini"; then
+    IS_ANTIGRAVITY=true
+fi
+
+# 4. Check if running inside Antigravity IDE workspace
+if [ -d "$HOME/.gemini/antigravity-ide" ] || [ -f "/tmp/antigravity_active" ]; then
+    if [ -n "$ANTIGRAVITY_SOURCE_METADATA" ] || [ -n "$COMMAND_MODE" ]; then
+        IS_ANTIGRAVITY=true
+    fi
+fi
+
+# If detected as Antigravity IDE commit, prepend [antigravity]
+if [ "$IS_ANTIGRAVITY" = "true" ]; then
+    echo "[antigravity] $CURRENT_MSG" > "$COMMIT_MSG_FILE"
+fi
+
+exit 0
